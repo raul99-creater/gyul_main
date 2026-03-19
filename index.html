@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>귤귤 | 회원 포털 로그인</title>
+  <link rel="stylesheet" href="./assets/css/styles.css" />
+</head>
+<body>
+  <header id="siteHeader" class="site-header"></header>
+  <main>
+    <section class="page-hero">
+      <div class="container hero-grid">
+        <div>
+          <span class="eyebrow">MEMBER PORTAL</span>
+          <h1 class="hero-title">아이디별로 할당된 강의만 보는<br>귤귤 회원 포털</h1>
+          <p class="hero-copy">로그인하면 내 강의 일정 달력, 모집중인 행사, 마감된 행사, 예정된 행사, 그리고 n주차 과제를 강의별로 확인하는 구조입니다.</p>
+          <div class="hero-mini">
+            <div class="mini"><strong>01</strong><span>강사·기수별 강의 배정</span></div>
+            <div class="mini"><strong>02</strong><span>행사 상태 자동 분류</span></div>
+            <div class="mini"><strong>03</strong><span>주차별 과제 보드</span></div>
+          </div>
+        </div>
+        <div class="hero-shell">
+          <div class="row" style="justify-content:space-between">
+            <span class="pill orange" id="modeBadge">모드 확인 중</span>
+            <span class="badge badge-outline">Vercel + Supabase</span>
+          </div>
+          <h3 style="margin:16px 0 6px;font-size:22px">로그인</h3>
+          <p class="muted" id="authHint">회원 계정으로 로그인하면 배정된 강의만 보입니다.</p>
+          <form id="loginForm" class="stack" style="margin-top:16px">
+            <div class="field"><label>이메일</label><input id="email" class="input" type="email" placeholder="you@example.com" /></div>
+            <div class="field"><label>비밀번호</label><input id="password" class="input" type="password" placeholder="8자 이상" /></div>
+            <button class="btn btn-primary" type="submit">로그인</button>
+          </form>
+          <div id="goDashboardWrap" class="row hidden" style="margin-top:12px">
+            <a class="btn btn-secondary" href="./dashboard.html">내 강의 페이지로 이동</a>
+            <button class="btn btn-ghost" data-action="logout" type="button">로그아웃</button>
+          </div>
+          <div class="notice-box" style="margin-top:16px">
+            데모 모드 기본 계정<br>
+            수강생: <code>student@gyulgyul.demo / demo1234</code><br>
+            강사 어드민 겸 테스트 계정: <code>instructor@gyulgyul.demo / admin1234</code>
+          </div>
+          <div class="row" style="margin-top:14px">
+            <a class="btn btn-secondary small" href="./signup.html?token=SHOPPING-ALPHA-2026">토큰 회원가입 데모</a>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="section soft-bg">
+      <div class="container split">
+        <div class="card">
+          <h3>회원가입은 강사·기수별 토큰 링크</h3>
+          <p>각 강사의 기수별로 서로 다른 토큰을 만들고, 해당 토큰이 붙은 <code>signup.html?token=...</code> 링크를 보내면 각각 별도의 회원가입 페이지처럼 쓸 수 있습니다.</p>
+        </div>
+        <div class="card">
+          <h3>어드민은 별도 배포</h3>
+          <p>회원 포털과 어드민을 완전히 분리했습니다. 메인에는 회원 로그인과 강의 대시보드만 남기고, 권한 관리는 분리형 어드민에서 처리합니다.</p>
+        </div>
+      </div>
+    </section>
+    <section class="section"><div class="container"><div id="statusBar" class="status-bar">로그인을 기다리는 중입니다.</div></div></section>
+  </main>
+  <footer id="siteFooter"></footer>
+  <script type="module" src="./assets/js/pages/login-page.js"></script>
+</body>
+</html>
