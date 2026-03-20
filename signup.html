@@ -6,33 +6,44 @@
   <title>귤귤 일정관리</title>
   <link rel="stylesheet" href="assets/css/styles.css" />
 </head>
-<body class="auth-page">
-  <main class="auth-center-wrap">
-    <section class="auth-panel auth-panel-compact">
-      <a class="brand brand-center" href="index.html"><span class="brand-mark"></span><span class="brand-text" data-site-name>귤귤 일정관리</span></a>
-      <div class="auth-heading">
-        <h1 class="auth-title">회원가입</h1>
-      </div>
-      <div id="token-info"></div>
-      <div id="signup-message" class="status-bar hidden"></div>
-      <form id="signup-form" class="stack auth-form-tight">
-        <div class="field">
-          <label>회원가입 토큰</label>
-          <input class="input" name="token" />
+<body>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="index.html"><span class="brand-mark"></span><span class="brand-text" data-site-name>귤귤 일정관리</span></a>
+    </div>
+  </header>
+
+  <main class="section">
+    <div class="container">
+      <section class="auth-shell">
+        <div class="stack">
+          <span class="pill orange">SIGN UP</span>
+          <h1 class="hero-title">귤귤 일정관리</h1>
+          <div id="token-info"></div>
         </div>
-        <div class="field">
-          <label>이름</label>
-          <input class="input" name="full_name" />
+        <div class="auth-card">
+          <div id="signup-message" class="status-bar hidden"></div>
+          <form id="signup-form" class="stack">
+            <div class="field">
+              <label>회원가입 토큰</label>
+              <input class="input" name="token" />
+            </div>
+            <div class="field">
+              <label>이름</label>
+              <input class="input" name="full_name" />
+            </div>
+            <div class="field">
+              <label>연락처</label>
+              <input class="input" name="phone" inputmode="numeric" />
+            </div>
+            <button class="btn btn-primary" type="submit">회원가입</button>
+            <a class="btn btn-secondary" href="index.html">로그인</a>
+          </form>
         </div>
-        <div class="field">
-          <label>연락처</label>
-          <input class="input" name="phone" inputmode="numeric" />
-        </div>
-        <button class="btn btn-primary btn-block" type="submit">회원가입</button>
-        <a class="btn btn-secondary btn-block" href="index.html">로그인</a>
-      </form>
-    </section>
+      </section>
+    </div>
   </main>
+
   <script type="module" src="assets/js/app.js"></script>
 </body>
 </html>

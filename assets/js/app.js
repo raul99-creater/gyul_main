@@ -84,18 +84,36 @@ async function initSignupPage() {
   });
 }
 
-function renderCalendar(schedule, selectedCourseId) {
+function renderCalendar(schedule, selectedCourseId, data = {}) {
   const shell = qs('#calendar-shell');
   if (!shell) return;
-  const events = (schedule || []).filter((item) => !selectedCourseId || item.course_id === selectedCourseId);
-  const cal = buildCalendar(events);
+  const scheduleItems = (schedule || []).filter((item) => !selectedCourseId || item.course_id === selectedCourseId).map((item) => ({
+    starts_at: item.starts_at,
+    title: item.title,
+    chipLabel: '정규',
+    chipClass: 'regular'
+  }));
+  const applicationMap = new Set((data.applications || []).map((item) => item.event_id));
+  const appliedEvents = (data.events || []).filter((item) => (!selectedCourseId || item.course_id === selectedCourseId) && applicationMap.has(item.id)).map((item) => ({
+    starts_at: item.starts_at,
+    title: item.title,
+    chipLabel: '신청',
+    chipClass: 'applied'
+  }));
+  const upcomingRecruit = (data.events || []).filter((item) => (!selectedCourseId || item.course_id === selectedCourseId) && eventBucket(item) === 'upcoming').map((item) => ({
+    starts_at: item.registration_open_at || item.starts_at,
+    title: item.title,
+    chipLabel: '모집예정',
+    chipClass: 'upcoming'
+  }));
+  const cal = buildCalendar([...scheduleItems, ...appliedEvents, ...upcomingRecruit]);
   const names = ['일','월','화','수','목','금','토'];
   shell.innerHTML = `
-    <div class="calendar-head"><div><h3 class="section-title">${cal.year}.${String(cal.month).padStart(2,'0')}</h3></div></div>
+    <div class="calendar-head"><div><h3 class="section-title">${cal.year}.${String(cal.month).padStart(2,'0')}</h3><div class="legend-row"><span class="legend-chip"><span class="legend-dot regular"></span>정규 일정</span><span class="legend-chip"><span class="legend-dot applied"></span>신청 완료 일정</span><span class="legend-chip"><span class="legend-dot upcoming"></span>모집 예정일</span></div></div></div>
     <div class="calendar-grid">${names.map((n) => `<div class="day-name">${n}</div>`).join('')}${cal.days.map((day) => day ? `
       <div class="day-cell">
         <div class="day-num">${day.date.getDate()}</div>
-        ${day.items.map((item) => `<span class="event-chip">${escapeHtml(item.title)}</span>`).join('')}
+        ${day.items.map((item) => `<span class="event-chip ${item.chipClass || ''}">${escapeHtml(item.chipLabel)} · ${escapeHtml(item.title)}</span>`).join('')}
       </div>
     ` : `<div class="day-cell" style="background:transparent;border:none;box-shadow:none"></div>`).join('')}</div>
   `;
@@ -213,7 +231,7 @@ async function initDashboardPage() {
       tabs.innerHTML = courses.map((course) => `<button class="course-tab ${course.id === selectedCourseId ? 'active' : ''}" data-course-tab="${course.id}">${escapeHtml(course.instructor_name)} ${escapeHtml(course.cohort_label)}</button>`).join('');
       const selected = courses.find((c) => c.id === selectedCourseId);
       qs('#course-head').innerHTML = selected ? `<div class="card"><div class="card-header"><div><h3>${escapeHtml(selected.title)}</h3><p>${escapeHtml(selected.instructor_name)} · ${escapeHtml(selected.cohort_label)}</p></div><span class="pill orange">배정됨</span></div><p>${escapeHtml(selected.description || '')}</p></div>` : '<div class="empty-state">배정된 강의가 없습니다.</div>';
-      renderCalendar(data.schedule || [], selectedCourseId);
+      renderCalendar(data.schedule || [], selectedCourseId, data);
       renderEvents(data, selectedCourseId);
       renderAssignments(data.assignments || [], selectedCourseId);
       attachEventApply(data, selectedCourseId, sessionToken);
