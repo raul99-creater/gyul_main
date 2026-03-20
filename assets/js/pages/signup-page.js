@@ -14,13 +14,13 @@ if (token) document.getElementById('token').value = token;
 
 async function loadTokenInfo(currentToken) {
   if (!currentToken) {
-    document.getElementById('tokenSummary').innerHTML = '<div class="empty-state">토큰이 아직 없습니다. 이 페이지는 <code>?token=...</code> 형식으로 여는 구조입니다.</div>';
+    document.getElementById('tokenSummary').innerHTML = '<div class="empty-state">토큰이 없습니다.</div>';
     return;
   }
   try {
     const info = await fetchTokenInfo(currentToken);
     if (!info) {
-      document.getElementById('tokenSummary').innerHTML = '<div class="empty-state">유효한 토큰을 찾지 못했습니다.</div>';
+      document.getElementById('tokenSummary').innerHTML = '<div class="empty-state">유효한 토큰이 없습니다.</div>';
       return;
     }
     const course = info.course || {};
@@ -28,7 +28,7 @@ async function loadTokenInfo(currentToken) {
       <div class="token-preview">
         <span class="pill orange">${escapeHtml(info.token_name || '회원가입 토큰')}</span>
         <h3 style="margin:12px 0 6px">${escapeHtml(course.title || '강의')}</h3>
-        <p>${escapeHtml(info.welcome_message || course.subtitle || '강의별 회원가입 페이지입니다.')}</p>
+        <p>${escapeHtml(info.welcome_message || course.subtitle || '')}</p>
         <div class="kv-list" style="margin-top:12px">
           <div class="kv-row"><strong>강의</strong><span>${escapeHtml(course.title || '-')}</span></div>
           <div class="kv-row"><strong>만료</strong><span>${escapeHtml(info.expires_at ? new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(info.expires_at)) : '미설정')}</span></div>

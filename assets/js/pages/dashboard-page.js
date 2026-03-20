@@ -43,7 +43,7 @@ function renderSummary() {
 function renderCourseTabs() {
   const target = document.getElementById('courseTabs');
   if (!dashboard.courses.length) {
-    target.innerHTML = '<div class="empty-state">배정된 강의가 없습니다. 토큰 회원가입 또는 어드민 배정을 먼저 확인하세요.</div>';
+    target.innerHTML = '<div class="empty-state">강의가 없습니다.</div>';
     return;
   }
   target.innerHTML = dashboard.courses.map((course) => {
