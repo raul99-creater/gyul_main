@@ -5,6 +5,6 @@ export const APP_CONFIG = {
   siteName: '귤귤',
   siteBasePath: '',
   appType: 'main',
-  adminAppUrl: 'https://gyulgyul-admin.vercel.app',
-  mainAppUrl: 'https://gyulgyul-main.vercel.app',
+  adminAppUrl: 'https://gyul-main.vercel.app/',
+  mainAppUrl: 'https://gyul-admin.vercel.app/',
 };
