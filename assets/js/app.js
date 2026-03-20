@@ -4,6 +4,8 @@ import { qs, qsa, escapeHtml, formatDateTime, eventBucket, setMessage, saveSessi
 
 const sessionKey = APP_CONFIG.sessionStorageKey;
 const uiState = { calendarYear: null, calendarMonth: null, dashboardData: null, selectedCourseId: '' };
+function normalizePhoneDigits(value=''){ return String(value||'').replace(/\D/g,''); }
+function isValidMemberPhone(value=''){ return /^\d{11}$/.test(normalizePhoneDigits(value)); }
 
 function currentPage() {
   const path = window.location.pathname.split('/').pop() || 'index.html';
@@ -31,7 +33,9 @@ async function initLoginPage() {
     e.preventDefault();
     setMessage(message, '');
     const fullName = qs('[name="full_name"]', form).value.trim();
-    const phone = qs('[name="phone"]', form).value.trim();
+    const phone = normalizePhoneDigits(qs('[name="phone"]', form).value);
+    if (!fullName) { setMessage(message, '이름을 입력해주세요.', 'error'); return; }
+    if (!isValidMemberPhone(phone)) { setMessage(message, '전화번호는 하이픈 없이 숫자 11자리로 입력해주세요.', 'error'); return; }
     try {
       const res = await api.signIn(fullName, phone);
       if (!res?.ok) throw new Error(res?.message || '로그인에 실패했습니다.');
@@ -87,8 +91,10 @@ async function initSignupPage() {
     setMessage(message, '');
     const token = tokenInput.value.trim();
     const fullName = qs('[name="full_name"]', form).value.trim();
-    const phone = qs('[name="phone"]', form).value.trim();
+    const phone = normalizePhoneDigits(qs('[name="phone"]', form).value);
     const agreed = qs('[name="privacy_agree"]', form)?.checked;
+    if (!fullName) { setMessage(message, '이름을 입력해주세요.', 'error'); return; }
+    if (!isValidMemberPhone(phone)) { setMessage(message, '전화번호는 하이픈 없이 숫자 11자리로 입력해주세요.', 'error'); return; }
     if (!agreed) {
       setMessage(message, '개인정보 수집 및 이용에 동의해야 회원가입할 수 있습니다.', 'error');
       return;
