@@ -200,3 +200,11 @@ button{cursor:pointer}
 .legend-dot.recruit-open{background:#7b59d0}
 .event-chip.recruit-open{background:#f1ebff;color:#6a44c0}
 .terms-field{gap:10px}.terms-toggle{justify-content:flex-start;background:#fff;border-color:var(--line)}.terms-detail{font-size:12px;line-height:1.7}.check-row{display:flex;gap:8px;align-items:flex-start;color:#6b4a31;font-weight:600}
+
+.course-head-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.support-link-button{width:100%;justify-content:flex-start;text-align:left;padding:14px 16px;border-radius:16px;border:1px solid var(--line);background:#fff;color:var(--text);font-weight:700}
+.support-link-button:hover{background:var(--brand-faint);border-color:#efc59f}
+.support-link-meta{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-top:4px}
+
+.event-chip.assignment{background:#f3ecff;color:#6a35b1}
+.legend-dot.assignment{background:#8b5cf6}

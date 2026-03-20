@@ -25,5 +25,7 @@ export const api = {
   signIn(fullName, phone) { return rpc('app_member_sign_in', { p_full_name: fullName, p_phone: phone }); },
   getDashboard(sessionToken) { return rpc('app_member_get_dashboard', { p_session_token: sessionToken }); },
   submitEvent(sessionToken, eventId, answers) { return rpc('app_member_submit_event', { p_session_token: sessionToken, p_event_id: eventId, p_answers: answers }); },
+  cancelEvent(sessionToken, eventId) { return rpc('app_member_cancel_event', { p_session_token: sessionToken, p_event_id: eventId }); },
+  listSupportLinks(sessionToken, courseId) { return rpc('app_member_list_support_links', { p_session_token: sessionToken, p_course_id: courseId }); },
   signOut(sessionToken) { return rpc('app_sign_out', { p_session_token: sessionToken }); }
 };

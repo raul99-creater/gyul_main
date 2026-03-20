@@ -131,10 +131,15 @@ function renderCalendar(schedule, selectedCourseId, data = {}) {
     title: item.title,
     chipClass: 'upcoming'
   }));
-  const cal = buildCalendar([...scheduleItems, ...appliedEvents, ...openRecruit, ...upcomingRecruit], uiState.calendarYear, uiState.calendarMonth);
+  const assignmentItems = (data.assignments || []).filter((item) => !selectedCourseId || item.course_id === selectedCourseId).map((item) => ({
+    starts_at: item.due_at,
+    title: item.title,
+    chipClass: 'assignment'
+  }));
+  const cal = buildCalendar([...scheduleItems, ...appliedEvents, ...openRecruit, ...upcomingRecruit, ...assignmentItems], uiState.calendarYear, uiState.calendarMonth);
   const names = ['일','월','화','수','목','금','토'];
   shell.innerHTML = `
-    <div class="calendar-head"><div><h3 class="section-title">${cal.year}.${String(cal.month).padStart(2,'0')}</h3><div class="legend-row"><span class="legend-chip"><span class="legend-dot regular"></span>정규 일정</span><span class="legend-chip"><span class="legend-dot applied"></span>신청 완료</span><span class="legend-chip"><span class="legend-dot recruit-open"></span>모집중 행사</span><span class="legend-chip"><span class="legend-dot upcoming"></span>모집 예정</span></div></div><div class="calendar-nav"><button class="btn btn-secondary small" type="button" id="calendar-prev">이전달</button><button class="btn btn-secondary small" type="button" id="calendar-next">다음달</button></div></div>
+    <div class="calendar-head"><div><h3 class="section-title">${cal.year}.${String(cal.month).padStart(2,'0')}</h3><div class="legend-row"><span class="legend-chip"><span class="legend-dot regular"></span>정규 일정</span><span class="legend-chip"><span class="legend-dot applied"></span>신청 완료</span><span class="legend-chip"><span class="legend-dot recruit-open"></span>모집중 행사</span><span class="legend-chip"><span class="legend-dot upcoming"></span>모집 예정</span><span class="legend-chip"><span class="legend-dot assignment"></span>과제 마감</span></div></div><div class="calendar-nav"><button class="btn btn-secondary small" type="button" id="calendar-prev">이전달</button><button class="btn btn-secondary small" type="button" id="calendar-next">다음달</button></div></div>
     <div class="calendar-grid">${names.map((n) => `<div class="day-name">${n}</div>`).join('')}${cal.days.map((day) => day ? `
       <div class="day-cell">
         <div class="day-num">${day.date.getDate()}</div>
@@ -156,7 +161,34 @@ function renderCalendar(schedule, selectedCourseId, data = {}) {
   });
 }
 
-function renderEvents(data, selectedCourseId) {
+function canCancelEvent(event) {
+  if (!event) return false;
+  if (!event.starts_at) return true;
+  return new Date(event.starts_at).getTime() > Date.now();
+}
+
+async function openSupportModal(sessionToken, course) {
+  const modal = qs('#support-modal');
+  const title = qs('#support-modal-title');
+  const subtitle = qs('#support-modal-subtitle');
+  const body = qs('#support-modal-body');
+  if (!modal || !course) return;
+  title.textContent = '문의하기';
+  subtitle.textContent = `${course.instructor_name} · ${course.cohort_label}`;
+  body.innerHTML = '<div class="empty-state">고객센터 목록을 불러오는 중입니다.</div>';
+  modal.hidden = false;
+  try {
+    const res = await api.listSupportLinks(sessionToken, course.id);
+    const items = res?.items || [];
+    body.innerHTML = items.length ? items.map((item) => `<a class="support-link-button" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer"><span>${escapeHtml(item.label || '문의하기')}</span><span class="support-link-meta">오픈카톡으로 이동</span></a>`).join('') : '<div class="empty-state">등록된 고객센터가 없습니다.</div>';
+  } catch (err) {
+    body.innerHTML = `<div class="status-bar err">${escapeHtml(err.message || '고객센터를 불러오지 못했습니다.')}</div>`;
+  }
+}
+
+function closeSupportModal() { const modal = qs('#support-modal'); if (modal) modal.hidden = true; }
+
+function renderEvents(data, selectedCourseId, sessionToken) {
   const openWrap = qs('#events-open');
   const closedWrap = qs('#events-closed');
   const upcomingWrap = qs('#events-upcoming');
@@ -165,7 +197,10 @@ function renderEvents(data, selectedCourseId) {
   const events = (data.events || []).filter((item) => !selectedCourseId || item.course_id === selectedCourseId);
   const buckets = { open: [], closed: [], upcoming: [] };
   events.forEach((event) => buckets[eventBucket(event)].push(event));
-  const card = (event) => `
+  const card = (event) => {
+    const applied = !!appsByEvent[event.id];
+    const canCancel = applied && canCancelEvent(event);
+    return `
     <article class="card">
       <div class="card-header"><div><h4>${escapeHtml(event.title)}</h4><p>${escapeHtml(event.description || '')}</p></div><span class="pill ${eventBucket(event) === 'open' ? 'green' : eventBucket(event) === 'upcoming' ? 'blue' : 'red'}">${eventBucket(event) === 'open' ? '모집중' : eventBucket(event) === 'upcoming' ? '예정' : '마감'}</span></div>
       <div class="kv-list">
@@ -173,13 +208,23 @@ function renderEvents(data, selectedCourseId) {
         <div class="kv-row"><strong>마감</strong><span>${formatDateTime(event.registration_close_at)}</span></div>
       </div>
       <div class="row" style="margin-top:10px">
-        ${appsByEvent[event.id] ? '<button class="btn btn-secondary small" disabled>신청완료</button>' : eventBucket(event) === 'open' ? `<button class="btn btn-primary small" data-apply-event="${event.id}">신청하기</button>` : ''}
+        ${applied ? `<button class="btn btn-secondary small" disabled>신청완료</button>${canCancel ? `<button class="btn btn-ghost small" data-cancel-event="${event.id}">취소하기</button>` : ''}` : eventBucket(event) === 'open' ? `<button class="btn btn-primary small" data-apply-event="${event.id}">신청하기</button>` : ''}
       </div>
-    </article>
-  `;
+    </article>`;
+  };
   openWrap.innerHTML = buckets.open.length ? buckets.open.map(card).join('') : '<div class="empty-state">모집중인 행사가 없습니다.</div>';
   upcomingWrap.innerHTML = buckets.upcoming.length ? buckets.upcoming.map(card).join('') : '<div class="empty-state">예정된 행사가 없습니다.</div>';
   closedWrap.innerHTML = buckets.closed.length ? buckets.closed.map(card).join('') : '<div class="empty-state">마감된 행사가 없습니다.</div>';
+  qsa('[data-cancel-event]').forEach((button) => button.addEventListener('click', async () => {
+    if (!confirm('행사 신청을 취소하시겠습니까?')) return;
+    try {
+      const res = await api.cancelEvent(sessionToken, button.dataset.cancelEvent);
+      if (!res?.ok) throw new Error(res?.message || '신청 취소에 실패했습니다.');
+      window.location.reload();
+    } catch (err) {
+      setMessage(qs('#dashboard-message'), err.message || '신청 취소에 실패했습니다.', 'error');
+    }
+  }));
 }
 
 function renderAssignments(assignments, selectedCourseId) {
@@ -268,11 +313,12 @@ async function initDashboardPage() {
     function paint() {
       tabs.innerHTML = courses.map((course) => `<button class="course-tab ${course.id === selectedCourseId ? 'active' : ''}" data-course-tab="${course.id}">${escapeHtml(course.instructor_name)} ${escapeHtml(course.cohort_label)}</button>`).join('');
       const selected = courses.find((c) => c.id === selectedCourseId);
-      qs('#course-head').innerHTML = selected ? `<div class="card"><div class="card-header"><div><h3>${escapeHtml(selected.title)}</h3><p>${escapeHtml(selected.instructor_name)} · ${escapeHtml(selected.cohort_label)}</p></div><span class="pill orange">배정됨</span></div><p>${escapeHtml(selected.description || '')}</p></div>` : '<div class="empty-state">배정된 강의가 없습니다.</div>';
+      qs('#course-head').innerHTML = selected ? `<div class="card"><div class="card-header"><div><h3>${escapeHtml(selected.title)}</h3><p>${escapeHtml(selected.instructor_name)} · ${escapeHtml(selected.cohort_label)}</p></div><span class="pill orange">배정됨</span></div><p>${escapeHtml(selected.description || '')}</p><div class="course-head-actions"><button class="btn btn-secondary small" type="button" id="support-open-btn">문의하기</button></div></div>` : '<div class="empty-state">배정된 강의가 없습니다.</div>';
       renderCalendar(data.schedule || [], selectedCourseId, data);
-      renderEvents(data, selectedCourseId);
+      renderEvents(data, selectedCourseId, sessionToken);
       renderAssignments(data.assignments || [], selectedCourseId);
       attachEventApply(data, selectedCourseId, sessionToken);
+      qs('#support-open-btn')?.addEventListener('click', () => openSupportModal(sessionToken, selected));
       qsa('[data-course-tab]').forEach((button) => button.addEventListener('click', () => { selectedCourseId = button.dataset.courseTab; uiState.selectedCourseId = selectedCourseId; uiState.calendarYear = null; uiState.calendarMonth = null; paint(); }));
     }
     paint();
@@ -285,8 +331,10 @@ async function initDashboardPage() {
     window.location.replace('index.html');
   });
   qs('#modal-close')?.addEventListener('click', closeModal);
+  qs('#support-modal-close')?.addEventListener('click', closeSupportModal);
   qs('#event-modal')?.addEventListener('click', (e) => { if (e.target.id === 'event-modal') closeModal(); });
-  window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+  qs('#support-modal')?.addEventListener('click', (e) => { if (e.target.id === 'support-modal') closeSupportModal(); });
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(); closeSupportModal(); } });
 }
 
 ensureTitle();
