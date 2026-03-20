@@ -1,38 +1,49 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>귤귤 일정관리</title>
-  <link rel="stylesheet" href="./assets/css/styles.css" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
 </head>
 <body>
-  <header id="siteHeader" class="site-header"></header>
-  <main>
-    <section class="page-hero">
-      <div class="container auth-shell">
-        <div>
-          <h1 class="hero-title" style="font-size:clamp(28px,3.8vw,44px)">귤귤 일정관리</h1>
-          <div id="tokenSummary" class="stack" style="margin-top:18px"></div>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="index.html"><span class="brand-mark"></span><span class="brand-text" data-site-name>귤귤 일정관리</span></a>
+    </div>
+  </header>
+
+  <main class="section">
+    <div class="container">
+      <section class="auth-shell">
+        <div class="stack">
+          <span class="pill orange">SIGN UP</span>
+          <h1 class="hero-title">귤귤 일정관리</h1>
+          <div id="token-info"></div>
         </div>
         <div class="auth-card">
-          <div class="row" style="justify-content:flex-end">
-            <a class="btn btn-secondary small" href="./index.html">로그인</a>
-          </div>
-          <form id="signupForm" class="stack" style="margin-top:14px">
-            <div class="field"><label>토큰</label><input id="token" class="input" /></div>
-            <div class="field"><label>이름</label><input id="fullName" class="input" /></div>
-            <div class="field"><label>연락처</label><input id="phone" class="input" /></div>
-            <div class="field"><label>이메일</label><input id="email" class="input" type="email" /></div>
-            <div class="field"><label>비밀번호</label><input id="password" class="input" type="password" /></div>
+          <div id="signup-message" class="status-bar hidden"></div>
+          <form id="signup-form" class="stack">
+            <div class="field">
+              <label>회원가입 토큰</label>
+              <input class="input" name="token" />
+            </div>
+            <div class="field">
+              <label>이름</label>
+              <input class="input" name="full_name" />
+            </div>
+            <div class="field">
+              <label>연락처</label>
+              <input class="input" name="phone" inputmode="numeric" />
+            </div>
             <button class="btn btn-primary" type="submit">회원가입</button>
+            <a class="btn btn-secondary" href="index.html">로그인</a>
           </form>
         </div>
-      </div>
-    </section>
-    <section class="section"><div class="container"><div id="statusBar" class="status-bar">확인 중</div></div></section>
+      </section>
+    </div>
   </main>
-  <footer id="siteFooter"></footer>
-  <script type="module" src="./assets/js/pages/signup-page.js"></script>
+
+  <script type="module" src="assets/js/app.js"></script>
 </body>
 </html>

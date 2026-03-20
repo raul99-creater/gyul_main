@@ -1,77 +1,67 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>귤귤 일정관리</title>
-  <link rel="stylesheet" href="./assets/css/styles.css" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
 </head>
 <body>
-  <header id="siteHeader" class="site-header"></header>
-  <main>
-    <section class="page-hero">
-      <div class="container layout">
-        <aside class="sidebar">
-          <div class="menu-card stack">
-            <div>
-              <div class="muted">계정</div>
-              <div style="font-weight:700;font-size:20px;letter-spacing:-.04em" id="profileName">-</div>
-              <div class="muted" id="profileEmail">-</div>
-            </div>
-            <span class="pill orange" id="profileRole">-</span>
-            <div class="row">
-              <span class="badge badge-outline" id="modeBadge">모드 확인 중</span>
-              <button class="btn btn-ghost small" data-action="logout" type="button">로그아웃</button>
-            </div>
-            <div id="adminLinkWrap" class="hidden"></div>
-          </div>
-          <div class="stats-card">
-            <div class="k">강의</div>
-            <div class="v" id="statCourses">0</div>
-          </div>
-          <div class="stats-card">
-            <div class="k">행사</div>
-            <div class="v" id="statEvents">0</div>
-          </div>
-          <div class="stats-card">
-            <div class="k">과제</div>
-            <div class="v" id="statAssignments">0</div>
-          </div>
-          <div class="stats-card">
-            <div class="k">일정</div>
-            <div class="v" id="statSchedules">0</div>
-          </div>
-        </aside>
-        <div class="main">
-          <div id="statusBar" class="status-bar">내 강의 정보를 불러오는 중입니다.</div>
-          <div class="card"><div id="courseTabs" class="course-tabs"></div></div>
-          <div id="courseHero" class="card"></div>
-          <div class="calendar-shell">
-            <div class="calendar-head">
-              <div>
-                <h2 class="section-title" style="margin:8px 0 0;font-size:28px" id="calendarTitle">-</h2>
-              </div>
-              <div class="row">
-                <button class="btn btn-ghost small" data-cal="prev" type="button">이전 달</button>
-                <button class="btn btn-ghost small" data-cal="next" type="button">다음 달</button>
-              </div>
-            </div>
-            <div id="calendarGrid" class="calendar-grid"></div>
-          </div>
-          <section class="stack">
-            <div class="row" style="justify-content:space-between;align-items:end"><div><span class="eyebrow">EVENTS</span><h2 class="section-title" style="margin-bottom:0">행사 상태별 보기</h2></div></div>
-            <div id="eventColumns" class="event-columns"></div>
-          </section>
-          <section class="grid-2">
-            <div class="card"><div class="card-header"><h3>강의 일정</h3><span class="pill orange">캘린더 연동</span></div><div id="scheduleList" class="stack"></div></div>
-            <div class="card"><div class="card-header"><h3>n주차 과제</h3><span class="pill orange">과제 보드</span></div><div id="assignmentList" class="assignment-list"></div></div>
-          </section>
-        </div>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="dashboard.html"><span class="brand-mark"></span><span class="brand-text" data-site-name>귤귤 일정관리</span></a>
+      <div class="nav-actions">
+        <span class="pill orange" id="member-name"></span>
+        <button class="btn btn-secondary small" id="signout-btn" type="button">로그아웃</button>
       </div>
-    </section>
+    </div>
+  </header>
+
+  <main class="section">
+    <div class="container layout">
+      <aside class="sidebar">
+        <section class="menu-card">
+          <div id="course-tabs" class="course-tabs"></div>
+        </section>
+      </aside>
+      <section class="main">
+        <div id="dashboard-message" class="status-bar hidden"></div>
+        <div id="course-head"></div>
+        <section class="calendar-shell" id="calendar-shell"></section>
+        <section class="card">
+          <div class="card-header"><div><h3>모집중인 행사</h3></div></div>
+          <div class="event-list" id="events-open"></div>
+        </section>
+        <section class="card">
+          <div class="card-header"><div><h3>예정된 행사</h3></div></div>
+          <div class="event-list" id="events-upcoming"></div>
+        </section>
+        <section class="card">
+          <div class="card-header"><div><h3>마감된 행사</h3></div></div>
+          <div class="event-list" id="events-closed"></div>
+        </section>
+        <section class="card">
+          <div class="card-header"><div><h3>과제</h3></div></div>
+          <div class="assignment-list" id="assignments-wrap"></div>
+        </section>
+      </section>
+    </div>
   </main>
-  <footer id="siteFooter"></footer>
-  <script type="module" src="./assets/js/pages/dashboard-page.js"></script>
+
+  <div class="modal" id="event-modal" hidden>
+    <div class="modal-card">
+      <div class="card-header">
+        <div><h3 id="event-modal-title">행사 신청</h3></div>
+        <button class="btn btn-secondary small" id="modal-close" type="button">닫기</button>
+      </div>
+      <div id="event-modal-message" class="status-bar hidden"></div>
+      <form id="event-apply-form" class="stack">
+        <div id="event-modal-body" class="stack"></div>
+        <button class="btn btn-primary" type="submit">신청하기</button>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="assets/js/app.js"></script>
 </body>
 </html>
