@@ -40,9 +40,9 @@ export function groupBy(list, keyFn) {
     return acc;
   }, {});
 }
-export function buildCalendar(events = []) {
+export function buildCalendar(events = [], year = null, month = null) {
   const today = new Date();
-  const view = new Date(today.getFullYear(), today.getMonth(), 1);
+  const view = year && month ? new Date(year, month - 1, 1) : new Date(today.getFullYear(), today.getMonth(), 1);
   const firstDay = new Date(view.getFullYear(), view.getMonth(), 1);
   const lastDay = new Date(view.getFullYear(), view.getMonth()+1, 0);
   const startWeekday = firstDay.getDay();

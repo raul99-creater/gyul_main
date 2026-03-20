@@ -194,3 +194,9 @@ button{cursor:pointer}
 .event-chip.regular{background:var(--brand-faint);color:#a85f1d}
 .event-chip.applied{background:var(--green-bg);color:var(--green)}
 .event-chip.upcoming{background:var(--blue-bg);color:var(--blue)}
+
+.calendar-nav{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.calendar-blank{background:transparent!important;border:none!important;box-shadow:none!important}
+.legend-dot.recruit-open{background:#7b59d0}
+.event-chip.recruit-open{background:#f1ebff;color:#6a44c0}
+.terms-field{gap:10px}.terms-toggle{justify-content:flex-start;background:#fff;border-color:var(--line)}.terms-detail{font-size:12px;line-height:1.7}.check-row{display:flex;gap:8px;align-items:flex-start;color:#6b4a31;font-weight:600}

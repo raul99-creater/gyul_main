@@ -3,6 +3,7 @@ import { api } from './api.js';
 import { qs, qsa, escapeHtml, formatDateTime, eventBucket, setMessage, saveSession, loadSession, clearSession, groupBy, buildCalendar } from './utils.js';
 
 const sessionKey = APP_CONFIG.sessionStorageKey;
+const uiState = { calendarYear: null, calendarMonth: null, dashboardData: null, selectedCourseId: '' };
 
 function currentPage() {
   const path = window.location.pathname.split('/').pop() || 'index.html';
@@ -47,25 +48,39 @@ async function initSignupPage() {
   const message = qs('#signup-message');
   const tokenInput = qs('[name="token"]', form);
   const tokenInfo = qs('#token-info');
+  const tokenField = qs('#token-field');
+  const privacyToggle = qs('#privacy-toggle');
+  const privacyBody = qs('#privacy-detail');
   const queryToken = new URLSearchParams(window.location.search).get('token') || '';
-  if (queryToken) tokenInput.value = queryToken;
+  if (queryToken) {
+    tokenInput.value = queryToken;
+    if (tokenField) tokenField.hidden = true;
+  }
+  privacyToggle?.addEventListener('click', () => {
+    const expanded = privacyToggle.getAttribute('aria-expanded') === 'true';
+    privacyToggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+    if (privacyBody) privacyBody.hidden = expanded;
+  });
 
   async function renderTokenInfo() {
     const token = tokenInput.value.trim();
-    if (!token) { tokenInfo.innerHTML = ''; return; }
+    if (!token) {
+      tokenInfo.innerHTML = '<div class="status-bar err">유효한 회원가입 링크로 접속해주세요.</div>';
+      return;
+    }
     try {
       const res = await api.getTokenInfo(token);
       if (res?.ok) {
         tokenInfo.innerHTML = `<div class="notice-box"><div class="kv-list"><div class="kv-row"><strong>강의</strong><span>${escapeHtml(res.course_title)}</span></div><div class="kv-row"><strong>강사</strong><span>${escapeHtml(res.instructor_name)} · ${escapeHtml(res.cohort_label)}</span></div></div></div>`;
       } else {
-        tokenInfo.innerHTML = `<div class="status-bar err">${escapeHtml(res?.message || '토큰을 확인해주세요.')}</div>`;
+        tokenInfo.innerHTML = `<div class="status-bar err">${escapeHtml(res?.message || '가입 링크를 확인해주세요.')}</div>`;
       }
     } catch (err) {
-      tokenInfo.innerHTML = `<div class="status-bar err">${escapeHtml(err.message || '토큰 조회에 실패했습니다.')}</div>`;
+      tokenInfo.innerHTML = `<div class="status-bar err">${escapeHtml(err.message || '가입 링크 확인에 실패했습니다.')}</div>`;
     }
   }
   tokenInput?.addEventListener('blur', renderTokenInfo);
-  if (queryToken) renderTokenInfo();
+  renderTokenInfo();
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -73,6 +88,11 @@ async function initSignupPage() {
     const token = tokenInput.value.trim();
     const fullName = qs('[name="full_name"]', form).value.trim();
     const phone = qs('[name="phone"]', form).value.trim();
+    const agreed = qs('[name="privacy_agree"]', form)?.checked;
+    if (!agreed) {
+      setMessage(message, '개인정보 수집 및 이용에 동의해야 회원가입할 수 있습니다.', 'error');
+      return;
+    }
     try {
       const res = await api.signUp(token, fullName, phone);
       if (!res?.ok) throw new Error(res?.message || '회원가입에 실패했습니다.');
@@ -87,36 +107,53 @@ async function initSignupPage() {
 function renderCalendar(schedule, selectedCourseId, data = {}) {
   const shell = qs('#calendar-shell');
   if (!shell) return;
+  const baseDate = uiState.calendarYear && uiState.calendarMonth ? new Date(uiState.calendarYear, uiState.calendarMonth - 1, 1) : new Date();
+  uiState.calendarYear = baseDate.getFullYear();
+  uiState.calendarMonth = baseDate.getMonth() + 1;
   const scheduleItems = (schedule || []).filter((item) => !selectedCourseId || item.course_id === selectedCourseId).map((item) => ({
     starts_at: item.starts_at,
     title: item.title,
-    chipLabel: '정규',
     chipClass: 'regular'
   }));
   const applicationMap = new Set((data.applications || []).map((item) => item.event_id));
   const appliedEvents = (data.events || []).filter((item) => (!selectedCourseId || item.course_id === selectedCourseId) && applicationMap.has(item.id)).map((item) => ({
     starts_at: item.starts_at,
     title: item.title,
-    chipLabel: '신청',
     chipClass: 'applied'
+  }));
+  const openRecruit = (data.events || []).filter((item) => (!selectedCourseId || item.course_id === selectedCourseId) && eventBucket(item) === 'open').map((item) => ({
+    starts_at: item.registration_open_at || item.starts_at,
+    title: item.title,
+    chipClass: 'recruit-open'
   }));
   const upcomingRecruit = (data.events || []).filter((item) => (!selectedCourseId || item.course_id === selectedCourseId) && eventBucket(item) === 'upcoming').map((item) => ({
     starts_at: item.registration_open_at || item.starts_at,
     title: item.title,
-    chipLabel: '모집예정',
     chipClass: 'upcoming'
   }));
-  const cal = buildCalendar([...scheduleItems, ...appliedEvents, ...upcomingRecruit]);
+  const cal = buildCalendar([...scheduleItems, ...appliedEvents, ...openRecruit, ...upcomingRecruit], uiState.calendarYear, uiState.calendarMonth);
   const names = ['일','월','화','수','목','금','토'];
   shell.innerHTML = `
-    <div class="calendar-head"><div><h3 class="section-title">${cal.year}.${String(cal.month).padStart(2,'0')}</h3><div class="legend-row"><span class="legend-chip"><span class="legend-dot regular"></span>정규 일정</span><span class="legend-chip"><span class="legend-dot applied"></span>신청 완료 일정</span><span class="legend-chip"><span class="legend-dot upcoming"></span>모집 예정일</span></div></div></div>
+    <div class="calendar-head"><div><h3 class="section-title">${cal.year}.${String(cal.month).padStart(2,'0')}</h3><div class="legend-row"><span class="legend-chip"><span class="legend-dot regular"></span>정규 일정</span><span class="legend-chip"><span class="legend-dot applied"></span>신청 완료</span><span class="legend-chip"><span class="legend-dot recruit-open"></span>모집중 행사</span><span class="legend-chip"><span class="legend-dot upcoming"></span>모집 예정</span></div></div><div class="calendar-nav"><button class="btn btn-secondary small" type="button" id="calendar-prev">이전달</button><button class="btn btn-secondary small" type="button" id="calendar-next">다음달</button></div></div>
     <div class="calendar-grid">${names.map((n) => `<div class="day-name">${n}</div>`).join('')}${cal.days.map((day) => day ? `
       <div class="day-cell">
         <div class="day-num">${day.date.getDate()}</div>
-        ${day.items.map((item) => `<span class="event-chip ${item.chipClass || ''}">${escapeHtml(item.chipLabel)} · ${escapeHtml(item.title)}</span>`).join('')}
+        ${day.items.map((item) => `<span class="event-chip ${item.chipClass || ''}">${escapeHtml(item.title)}</span>`).join('')}
       </div>
-    ` : `<div class="day-cell" style="background:transparent;border:none;box-shadow:none"></div>`).join('')}</div>
+    ` : `<div class="day-cell calendar-blank"></div>`).join('')}</div>
   `;
+  qs('#calendar-prev')?.addEventListener('click', () => {
+    const prev = new Date(uiState.calendarYear, uiState.calendarMonth - 2, 1);
+    uiState.calendarYear = prev.getFullYear();
+    uiState.calendarMonth = prev.getMonth() + 1;
+    renderCalendar(schedule, selectedCourseId, data);
+  });
+  qs('#calendar-next')?.addEventListener('click', () => {
+    const next = new Date(uiState.calendarYear, uiState.calendarMonth, 1);
+    uiState.calendarYear = next.getFullYear();
+    uiState.calendarMonth = next.getMonth() + 1;
+    renderCalendar(schedule, selectedCourseId, data);
+  });
 }
 
 function renderEvents(data, selectedCourseId) {
@@ -222,6 +259,7 @@ async function initDashboardPage() {
   const status = qs('#dashboard-message');
   try {
     const data = await api.getDashboard(sessionToken);
+    uiState.dashboardData = data;
     if (!data?.ok) throw new Error(data?.message || '데이터를 불러오지 못했습니다.');
     qs('#member-name').textContent = data.profile?.full_name || '';
     const tabs = qs('#course-tabs');
@@ -235,7 +273,7 @@ async function initDashboardPage() {
       renderEvents(data, selectedCourseId);
       renderAssignments(data.assignments || [], selectedCourseId);
       attachEventApply(data, selectedCourseId, sessionToken);
-      qsa('[data-course-tab]').forEach((button) => button.addEventListener('click', () => { selectedCourseId = button.dataset.courseTab; paint(); }));
+      qsa('[data-course-tab]').forEach((button) => button.addEventListener('click', () => { selectedCourseId = button.dataset.courseTab; uiState.selectedCourseId = selectedCourseId; uiState.calendarYear = null; uiState.calendarMonth = null; paint(); }));
     }
     paint();
   } catch (err) {
