@@ -220,7 +220,7 @@ async function openSupportModal(sessionToken, course) {
   try {
     const res = await api.listSupportLinks(sessionToken, course.id);
     const items = res?.items || [];
-    body.innerHTML = items.length ? items.map((item) => `<a class="support-link-button" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer"><span>${escapeHtml(item.label || '문의하기')}</span><span class="support-link-meta">오픈카톡으로 이동</span></a>`).join('') : '<div class="empty-state">등록된 고객센터가 없습니다.</div>';
+    body.innerHTML = items.length ? items.map((item) => `<a class="support-link-button" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer"><span>${escapeHtml(item.label || item.title || '문의하기')}</span><span class="support-link-meta">오픈카톡으로 이동</span></a>`).join('') : '<div class="empty-state">등록된 고객센터가 없습니다.</div>';
   } catch (err) {
     body.innerHTML = `<div class="status-bar err">${escapeHtml(err.message || '고객센터를 불러오지 못했습니다.')}</div>`;
   }
