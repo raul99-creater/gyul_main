@@ -110,6 +110,35 @@ async function initSignupPage() {
   });
 }
 
+function detailLabel(chipClass) {
+  return ({ regular: '정규 일정', applied: '신청 완료', 'recruit-open': '모집중 행사', upcoming: '모집 예정', assignment: '과제 마감' }[chipClass] || '일정');
+}
+
+function openCalendarDetailModal(day) {
+  const modal = qs('#calendar-detail-modal');
+  const title = qs('#calendar-detail-title');
+  const subtitle = qs('#calendar-detail-subtitle');
+  const body = qs('#calendar-detail-body');
+  if (!modal || !day) return;
+  const yyyy = day.date.getFullYear();
+  const mm = String(day.date.getMonth() + 1).padStart(2, '0');
+  const dd = String(day.date.getDate()).padStart(2, '0');
+  title.textContent = '일정 상세';
+  subtitle.textContent = `${yyyy}.${mm}.${dd}`;
+  body.innerHTML = `<div class="calendar-detail-list">${day.items.map((item) => `
+    <div class="calendar-detail-item">
+      <div class="calendar-detail-meta"><span class="calendar-detail-dot ${item.chipClass || ''}"></span><span>${detailLabel(item.chipClass)}</span></div>
+      <div><strong>${escapeHtml(item.title)}</strong></div>
+    </div>
+  `).join('')}</div>`;
+  modal.hidden = false;
+}
+
+function closeCalendarDetailModal() {
+  const modal = qs('#calendar-detail-modal');
+  if (modal) modal.hidden = true;
+}
+
 function renderCalendar(schedule, selectedCourseId, data = {}) {
   const shell = qs('#calendar-shell');
   if (!shell) return;
@@ -146,13 +175,18 @@ function renderCalendar(schedule, selectedCourseId, data = {}) {
   const names = ['일','월','화','수','목','금','토'];
   shell.innerHTML = `
     <div class="calendar-head"><div><h3 class="section-title">${cal.year}.${String(cal.month).padStart(2,'0')}</h3><div class="legend-row"><span class="legend-chip"><span class="legend-dot regular"></span>정규 일정</span><span class="legend-chip"><span class="legend-dot applied"></span>신청 완료</span><span class="legend-chip"><span class="legend-dot recruit-open"></span>모집중 행사</span><span class="legend-chip"><span class="legend-dot upcoming"></span>모집 예정</span><span class="legend-chip"><span class="legend-dot assignment"></span>과제 마감</span></div></div><div class="calendar-nav"><button class="btn btn-secondary small" type="button" id="calendar-prev">이전달</button><button class="btn btn-secondary small" type="button" id="calendar-next">다음달</button></div></div>
-    <div class="calendar-grid">${names.map((n) => `<div class="day-name">${n}</div>`).join('')}${cal.days.map((day) => day ? `
-      <div class="day-cell">
+    <div class="calendar-grid">${names.map((n) => `<div class="day-name">${n}</div>`).join('')}${cal.days.map((day, idx) => day ? `
+      <button class="day-cell ${day.items.length ? 'has-items' : ''}" type="button" data-day-index="${idx}">
         <div class="day-num">${day.date.getDate()}</div>
         ${day.items.map((item) => `<span class="event-chip ${item.chipClass || ''}">${escapeHtml(item.title)}</span>`).join('')}
-      </div>
+        <div class="event-markers">${day.items.map((item) => `<span class="event-marker ${item.chipClass || ''}" title="${escapeHtml(item.title)}"></span>`).join('')}</div>
+      </button>
     ` : `<div class="day-cell calendar-blank"></div>`).join('')}</div>
   `;
+  qsa('[data-day-index]', shell).forEach((button) => button.addEventListener('click', () => {
+    const day = cal.days[Number(button.dataset.dayIndex)];
+    if (day?.items?.length) openCalendarDetailModal(day);
+  }));
   qs('#calendar-prev')?.addEventListener('click', () => {
     const prev = new Date(uiState.calendarYear, uiState.calendarMonth - 2, 1);
     uiState.calendarYear = prev.getFullYear();
@@ -338,9 +372,11 @@ async function initDashboardPage() {
   });
   qs('#modal-close')?.addEventListener('click', closeModal);
   qs('#support-modal-close')?.addEventListener('click', closeSupportModal);
+  qs('#calendar-detail-close')?.addEventListener('click', closeCalendarDetailModal);
   qs('#event-modal')?.addEventListener('click', (e) => { if (e.target.id === 'event-modal') closeModal(); });
   qs('#support-modal')?.addEventListener('click', (e) => { if (e.target.id === 'support-modal') closeSupportModal(); });
-  window.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(); closeSupportModal(); } });
+  qs('#calendar-detail-modal')?.addEventListener('click', (e) => { if (e.target.id === 'calendar-detail-modal') closeCalendarDetailModal(); });
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(); closeSupportModal(); closeCalendarDetailModal(); } });
 }
 
 ensureTitle();
