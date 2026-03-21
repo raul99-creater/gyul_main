@@ -206,5 +206,5 @@ button{cursor:pointer}
 .support-link-button:hover{background:var(--brand-faint);border-color:#efc59f}
 .support-link-meta{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-top:4px}
 
-.event-chip.assignment{background:#fdecec;color:#c62828}
-.legend-dot.assignment{background:#e53935}
+.event-chip.assignment{background:#e9f8f2;color:#17805a}
+.legend-dot.assignment{background:#1ca971}
